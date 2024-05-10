@@ -25,6 +25,9 @@ const client = new Client(url)
 app.get('/', homeHandler);
 app.post('/addMovie', addMovieHandler);
 app.get('/getMovies', getMoviesHandler);
+app.put('/update/:movieId',updateHandeler);
+app.delete('/delete/:id',deleteHandeler);
+app.get('/getmovie/:id', getmovieHandeler);
 
 //handelers
 function homeHandler(req, res){
@@ -38,7 +41,7 @@ function addMovieHandler(req, res){
     //const image= req.body.image;
 
     const {title, time, image }= req.body //destructuring ES6
-    const sql=`INSERT INTO Movies (title, time, image)
+    const sql=`INSERT INTO Movie (title, time, image)
     VALUES ($1, $2, $3) RETURNING *;`
     const values= [title, time, image]
     client.query(sql, values).then((result)=>{
@@ -50,7 +53,7 @@ function addMovieHandler(req, res){
    // res.send("data recived");
 }
 function getMoviesHandler(req, res){
-    const sql= `SELECT * FROM Movies;`
+    const sql= `SELECT * FROM Movie;`
 
     client.query(sql).then((result)=>{
         const data = result.rows
@@ -58,7 +61,53 @@ function getMoviesHandler(req, res){
     })
     .catch()
     }
+function updateHandeler(req,res) {
+       // console.log(req.params)
+       let recipe =req.params.movieId;
+       let {title, time, image } = req.body;
+       let sql=`UPDATE Movie
+         SET title = $1, time = $2, image = $3
+             WHERE id = $4;`;
+       let values=[title, time, image,recipe ];
+     
+        client.query(sql, values)
+            .then(result => {
+                console.log('Movie updated:');
+                res.status(200).send("successfully ubdate")
+            })
+            .catch(error => {
+                console.error('Error updating a movie:', error);
+                res.status(500).send('Error updating movie');
+            });
+    }
+function deleteHandeler(req, res){
+    const { id } = req.params;
+    const sql = 'DELETE FROM Movie WHERE id = $1;';
+    const valuse = [id];
 
+    client.query(sql, valuse)
+        .then(result => {
+                console.log('Movie deleted:');
+                res.status(204).send("successfully Deleted");
+            
+        })
+        .catch(error => {
+            console.error('Error deleting a movie:', error);
+            res.status(500).send('Error deleting movie');
+        });
+        }
+function getmovieHandeler(req, res) {
+            const { id } = req.params;
+            const sql = `SELECT * FROM Movie WHERE id = $1`;
+        
+            client.query(sql, [id]).then(result => {
+                console.log(result.rows);
+                res.status(200).json(result.rows);
+            }).catch(err => {
+                console.error('Getting movie failed:', err);
+                res.status(500).send('Getting movie failed');
+            });
+        }
 
 //listener
 client.connect().then(()=>{
