@@ -18,7 +18,7 @@ app.use(cors());
 //!-------------------------Lap 13------------------------------!
 
 const { Client } = require('pg')
-const url ='postgres://rawan:0000@localhost:5432/moviedatabase'
+const url =process.env.PG_URL
 const client = new Client(url)
 
 //Route
